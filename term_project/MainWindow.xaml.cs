@@ -1,28 +1,32 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
+﻿using System.Windows;
+using System;
 
 namespace term_project
 {
-    /// <summary>
-    /// Interaction logic for MainWindow.xaml
-    /// </summary>
     public partial class MainWindow : Window
     {
         public MainWindow()
         {
             InitializeComponent();
+        }
+
+      
+        private void OpenAdminDashboard(object sender, RoutedEventArgs e)
+        {
+            AdminDashboard adminWindow = new AdminDashboard();
+            adminWindow.Show();
+        }
+
+        private void OpenBuyerDashboard(object sender, RoutedEventArgs e)
+        {
+            BuyerDashboard buyerWindow = new BuyerDashboard();
+            buyerWindow.Show();
+        }
+
+        private void OpenPlannerDashboard(object sender, RoutedEventArgs e)
+        {
+            PlannerDashboard plannerWindow = new PlannerDashboard();
+            plannerWindow.Show();
         }
     }
 }

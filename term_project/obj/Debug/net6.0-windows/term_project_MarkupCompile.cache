@@ -1,5 +1,5 @@
 ﻿term_project
-1.0.0.0
+
 
 winexe
 C#
@@ -12,9 +12,9 @@ TRACE;DEBUG;NET;NET6_0;NETCOREAPP
 C:\Users\tyman\source\repos\term_project\term_project\App.xaml
 41865365546
 
-8-855072217
+6-271362350
 194-1325968647
 AdminDashboard.xaml;BuyerDashboard.xaml;MainWindow.xaml;PlannerDashboard.xaml;
 
-True
+False
 
