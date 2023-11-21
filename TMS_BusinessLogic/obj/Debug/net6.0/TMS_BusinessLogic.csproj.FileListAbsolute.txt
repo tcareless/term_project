@@ -1,0 +1,12 @@
+C:\Users\tyman\source\repos\term_project\TMS_BusinessLogic\bin\Debug\net6.0\TMS_BusinessLogic.deps.json
+C:\Users\tyman\source\repos\term_project\TMS_BusinessLogic\bin\Debug\net6.0\TMS_BusinessLogic.dll
+C:\Users\tyman\source\repos\term_project\TMS_BusinessLogic\bin\Debug\net6.0\TMS_BusinessLogic.pdb
+C:\Users\tyman\source\repos\term_project\TMS_BusinessLogic\obj\Debug\net6.0\TMS_BusinessLogic.csproj.AssemblyReference.cache
+C:\Users\tyman\source\repos\term_project\TMS_BusinessLogic\obj\Debug\net6.0\TMS_BusinessLogic.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\tyman\source\repos\term_project\TMS_BusinessLogic\obj\Debug\net6.0\TMS_BusinessLogic.AssemblyInfoInputs.cache
+C:\Users\tyman\source\repos\term_project\TMS_BusinessLogic\obj\Debug\net6.0\TMS_BusinessLogic.AssemblyInfo.cs
+C:\Users\tyman\source\repos\term_project\TMS_BusinessLogic\obj\Debug\net6.0\TMS_BusinessLogic.csproj.CoreCompileInputs.cache
+C:\Users\tyman\source\repos\term_project\TMS_BusinessLogic\obj\Debug\net6.0\TMS_BusinessLogic.dll
+C:\Users\tyman\source\repos\term_project\TMS_BusinessLogic\obj\Debug\net6.0\refint\TMS_BusinessLogic.dll
+C:\Users\tyman\source\repos\term_project\TMS_BusinessLogic\obj\Debug\net6.0\TMS_BusinessLogic.pdb
+C:\Users\tyman\source\repos\term_project\TMS_BusinessLogic\obj\Debug\net6.0\ref\TMS_BusinessLogic.dll
