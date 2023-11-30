@@ -1,18 +1,34 @@
-﻿using System.Windows;
-//using term_project.BusinessLogic; // Assuming you have a BusinessLogic namespace
+﻿using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Windows;
 //using term_project.DataAccess;   // Assuming you have a DataAccess namespace
+using TMS_BusinessLogic;
 
 namespace term_project
 {
     public partial class BuyerDashboard : Window
     {
+        public ObservableCollection<MarketPlaceValues> OrdersList { get; set; } = new ObservableCollection<MarketPlaceValues>();  // make sure to set it up right because if there ar eno get set then iut wont owrk
         public BuyerDashboard()
         {
             InitializeComponent();
+            GetTable tableRecorder = new GetTable();
+            MarketPlaceValues marketValues = new MarketPlaceValues();
+            OrderTableStorage tableStorage = new OrderTableStorage();
+            tableRecorder.connectDatabase(marketValues, tableStorage);
+            foreach (MarketPlaceValues item in tableStorage.OrdersList)
+            {
+                OrdersList.Add(item);// populate the object grid with the class object datagrid will auto make it for you
+            }
+           
+
+            
+            this.DataContext = this;
         }
 
         private void OnManageContractsClick(object sender, RoutedEventArgs e)
         {
+
             // TODO: Initialize and display a loading indicator (e.g., a progress bar or spinner)
 
             // TODO: Fetch contracts asynchronously from the Business Logic layer
@@ -302,6 +318,16 @@ namespace term_project
             // TODO: Implement a 'cancel' button to allow users to exit the password change process
 
             // TODO: After a successful password change, recommend or force the user to log out and log in again with the new password
+        }
+
+        private void TabControl_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
+        {
+            
+        }
+
+        private void orderGrid_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
+        {
+
         }
 
 
