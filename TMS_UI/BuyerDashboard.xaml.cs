@@ -1,6 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.Windows;
+using System.Windows.Controls;
 //using term_project.DataAccess;   // Assuming you have a DataAccess namespace
 using TMS_BusinessLogic;
 
@@ -9,6 +11,7 @@ namespace term_project
     public partial class BuyerDashboard : Window
     {
         public ObservableCollection<MarketPlaceValues> OrdersList { get; set; } = new ObservableCollection<MarketPlaceValues>();  // make sure to set it up right because if there ar eno get set then iut wont owrk
+
         public BuyerDashboard()
         {
             InitializeComponent();
@@ -38,87 +41,40 @@ namespace term_project
             OrdersList.Clear();
             string table = "Contract_Marketplace";
             GetTable(table);
-            // TODO: Initialize and display a loading indicator (e.g., a progress bar or spinner)
-
-            // TODO: Fetch contracts asynchronously from the Business Logic layer
-            // This might involve calling a method like: var contracts = await ContractManager.GetContractsAsync();
-
-            // TODO: Check if the fetched contracts list is empty
-            // If empty, display a message indicating "No contracts available"
-
-            // TODO: If contracts are available, proceed to display them
-            // Define the data structure for displaying contracts (e.g., a list, a table model)
-
-            // TODO: Format the data for presentation
-            // This might involve transforming raw data into a user-friendly format
-            // Example: Converting date formats, summarizing lengthy descriptions, etc.
-
-            // TODO: Set up a DataGrid or ListView for displaying contracts
-            // Define columns such as Contract ID, Start Date, End Date, Status, etc.
-            // Bind the formatted contract data to the DataGrid or ListView
-
-            // TODO: Implement functionality for sorting and filtering the contracts
-            // Allow users to sort by different columns (e.g., by date, by status)
-            // Provide filters for viewing specific types of contracts (e.g., active, expired)
-
-            // TODO: Add interaction capabilities to the contract list
-            // Implement selection of a contract to view detailed information
-            // Provide buttons or links for actions like renewing, terminating, or modifying a contract
-
-            // TODO: Implement pagination if the list is too long
-            // This helps in managing the display of a large number of contracts
-
-            // TODO: Handle any exceptions or errors during the fetching and displaying process
-            // Display error messages in case of failure in data retrieval or processing
-
-            // TODO: Hide the loading indicator once the data is fully loaded and displayed
-
-            // TODO: Optionally, implement a refresh button to reload contracts
+           
         }
 
         private void OnInitiateOrderClick(object sender, RoutedEventArgs e)
         {
-            // TODO: Display a form for initiating a new order
-            // This might involve opening a new window or displaying a form panel in the current window
-
-            // TODO: Define the fields required for the order form
-            // Include fields like Product ID/Name, Quantity, Delivery Date, Shipping Address, etc.
-            // Optionally, provide dropdowns or selection options for fields with predefined values (e.g., product names)
-
-            // TODO: Implement input validation for the form fields
-            // Check for required fields to ensure they are not empty
-            // Validate data types (e.g., quantity should be a number, dates should be in a valid format)
-            // Implement range validation where necessary (e.g., quantity should not be negative or zero)
-
-            // TODO: Provide a user interface for selecting products
-            // This could be a searchable dropdown, a list, or a dialog allowing users to search and select products
-
-            // TODO: Add capability to dynamically add or remove multiple products in the order
-            // Allow users to add multiple products to the order with different quantities
-
-            // TODO: Implement a price calculation feature
-            // Calculate and display the total price based on selected products and quantities
-
-            // TODO: Include additional order details like special instructions or preferences
-
-            // TODO: Add a submit button for the order form
-            // Upon clicking submit, first perform client-side validation of all form fields
-
-            // TODO: If validation fails, display appropriate error messages next to the respective fields
-
-            // TODO: If validation passes, send the order details to the Business Logic layer
-            // This might involve calling a method like: OrderManager.CreateOrder(orderDetails);
-
-            // TODO: Handle any exceptions or errors during order submission
-            // Display an error message if the order submission fails
-
-            // TODO: On successful submission, provide feedback to the user
-            // This could be a confirmation message or redirection to a summary page showing order details
-            // Optionally, provide an order reference number or similar for future tracking
-
-            // TODO: Implement a 'clear' or 'reset' functionality to reset the form for a new order
-
-            // TODO: Optionally, provide a 'cancel' button to exit the order initiation process
+         
+            GetTable tableRecorder = new GetTable();
+            MarketPlaceValues marketValues = new MarketPlaceValues();
+            OrderTableStorage tableStorage = new OrderTableStorage();
+            tableRecorder.connectDatabase(marketValues, tableStorage, "Contract_Marketplace");
+            List<MarketPlaceValues> ContractList=  tableStorage.OrdersList;     //reference to this
+            foreach (var item in orderGrid.SelectedItems)
+            {
+                var selectedItem = item as MarketPlaceValues;// break it down even further to be usable
+                if (selectedItem != null)
+                {
+                    if (selectedItem.Status == "Available")
+                    {
+                        // add the funny question mark so the compiler can stop being annoying about null values
+                        MarketPlaceValues? market = ContractList.FirstOrDefault(x => x.Order_ID == selectedItem.Order_ID); //this value will never be a null because it is a primary key and set to not null
+                        if (market != null)
+                        {
+                            market.Status = "Taken";
+                        }
+                       // MessageBox.Show(market.Order_ID.ToString() + market.Status);
+                        //table is updated but we need to now update the sql tableDD
+                    }
+                }
+            }
+            OrdersList.Clear();// clear the existing grid and update it again it would probably be better to delete/update just the selected value but thats for another time
+            foreach (MarketPlaceValues item in tableStorage.OrdersList)
+            {
+                OrdersList.Add(item);// populate the object grid with the class object datagrid will auto make it for you
+            }
         }
 
         private void OnGenerateInvoiceClick(object sender, RoutedEventArgs e)
