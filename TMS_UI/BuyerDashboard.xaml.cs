@@ -12,23 +12,32 @@ namespace term_project
         public BuyerDashboard()
         {
             InitializeComponent();
+
+        }
+        private void GetTable(string table)
+        {
             GetTable tableRecorder = new GetTable();
             MarketPlaceValues marketValues = new MarketPlaceValues();
             OrderTableStorage tableStorage = new OrderTableStorage();
-            tableRecorder.connectDatabase(marketValues, tableStorage);
+            tableRecorder.connectDatabase(marketValues, tableStorage, table);
             foreach (MarketPlaceValues item in tableStorage.OrdersList)
             {
                 OrdersList.Add(item);// populate the object grid with the class object datagrid will auto make it for you
             }
-           
-
-            
-            this.DataContext = this;
+            this.DataContext = this;    //update the grid
         }
+        private void onManagerCustomerClick(object sender, RoutedEventArgs e)
+        {
+            OrdersList.Clear();
+            string table = "Existing_Customers";
+            GetTable(table);
 
+        }
         private void OnManageContractsClick(object sender, RoutedEventArgs e)
         {
-
+            OrdersList.Clear();
+            string table = "Contract_Marketplace";
+            GetTable(table);
             // TODO: Initialize and display a loading indicator (e.g., a progress bar or spinner)
 
             // TODO: Fetch contracts asynchronously from the Business Logic layer
@@ -320,15 +329,11 @@ namespace term_project
             // TODO: After a successful password change, recommend or force the user to log out and log in again with the new password
         }
 
-        private void TabControl_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
-        {
-            
-        }
-
         private void orderGrid_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
         {
 
         }
+
 
 
         // Other helper methods or event handlers as needed
