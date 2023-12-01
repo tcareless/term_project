@@ -4,16 +4,16 @@
 winexe
 C#
 .cs
-C:\Users\tyman\source\repos\term_project\TMS_UI\obj\Debug\net6.0-windows\
+D:\Term Project\term_project\TMS_UI\obj\Debug\net6.0-windows\
 term_project
 none
 false
 TRACE;DEBUG;NET;NET6_0;NETCOREAPP
-C:\Users\tyman\source\repos\term_project\TMS_UI\App.xaml
+D:\Term Project\term_project\TMS_UI\App.xaml
 41865365546
-2-1674551715
+21097468748
 8-855072217
-206-581490293
+206-981060200
 AdminDashboard.xaml;BuyerDashboard.xaml;MainWindow.xaml;PlannerDashboard.xaml;
 
 False
