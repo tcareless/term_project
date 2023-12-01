@@ -1,0 +1,7 @@
+D:\Term Project\term_project\Planner\bin\Debug\Planner.exe.config
+D:\Term Project\term_project\Planner\bin\Debug\Planner.exe
+D:\Term Project\term_project\Planner\bin\Debug\Planner.pdb
+D:\Term Project\term_project\Planner\obj\Debug\Planner.csproj.AssemblyReference.cache
+D:\Term Project\term_project\Planner\obj\Debug\Planner.csproj.CoreCompileInputs.cache
+D:\Term Project\term_project\Planner\obj\Debug\Planner.exe
+D:\Term Project\term_project\Planner\obj\Debug\Planner.pdb
