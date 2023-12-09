@@ -9,30 +9,79 @@ namespace TMS_BusinessLogic
     public class OrderTableStorage
     {
         public List<MarketPlaceValues> OrdersList = new List<MarketPlaceValues>();
-
+        public List<BuyerOrder> OrdersListCustomer = new List<BuyerOrder>();
     }
     public class MarketPlaceValues
     {
-        public int Order_ID { get; set; }
-        public string Cargo { get; set; }
-        public string Customer { get; set; }
-        public string StartingCity { get; set; }
+        public string ClientName { get; set; }
+        public int JobType { get; set; }
+        public int Quantity { get; set; }
+        public string Origin { get; set; }
         public string Destination { get; set; }
-        public MarketPlaceValues(int order_ID, string cargo, string customer, string startingCity, string destination)
+        public int VanType { get; set; }
+        public MarketPlaceValues()
         {
-            Order_ID = order_ID;
-            Cargo = cargo;
-            Customer = customer;
-            StartingCity = startingCity;
+            ClientName ="unknown";
+            JobType = -1;
+            Quantity = -1;
+            Origin = "unknown";
+            Destination = "unknown";
+            VanType = -1;
+        }
+        public MarketPlaceValues(MarketPlaceValues value)
+        {
+            ClientName= value.ClientName;
+            JobType = value.JobType;
+            Quantity = value.Quantity;
+            Origin = value.Origin;
+            Destination = value.Destination;
+            VanType = value.VanType;
+        }
+        public MarketPlaceValues(string clientName, int jobType, int quantity, string origin, string destination, int vanType)
+        {
+            ClientName = clientName;
+            JobType = jobType;
+            Quantity = quantity;
+            Origin = origin;
             Destination = destination;
+            VanType = vanType;
         }
     }
-    public class Existing_Customer : MarketPlaceValues
+    public class BuyerOrder : MarketPlaceValues
     {
+        public int OrderID { get; set; }
+        public string Carrier { get; set; }
         public string Status { get; set; }
-        public Existing_Customer(int order_ID, string cargo, string customer, string startingCity, string destination,string status):base(order_ID, cargo, customer, startingCity, destination)
+        public int Price { get; set; }
+        public BuyerOrder() : base() 
         {
+            OrderID = -1;
+            Carrier= "unknown";
+            Status= "unknown";
+            Price = 0;
+        }
+        
+        public BuyerOrder(int orderID, MarketPlaceValues value, string carrier,string status,int price): base(value)
+        {
+            OrderID = orderID;
+            Carrier = carrier;
             Status = status;
+            Price = price;
+        }
+        public BuyerOrder(BuyerOrder value) : base(value)
+        {
+            OrderID = value.OrderID;
+            Carrier = value.Carrier;
+            Status = value.Status;
+            Price = value.Price;
+        }
+        public BuyerOrder(int orderID,string clientName, string carrier, int jobType, int quantity, string origin, string destination, int vanType,string status,int price) : base(clientName, jobType, quantity, origin, destination,vanType)
+        {
+            OrderID = orderID;
+            Carrier = carrier;
+            Status= status;
+            Price = price;
+
         }
     }
 }
