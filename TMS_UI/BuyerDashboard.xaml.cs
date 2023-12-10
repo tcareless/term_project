@@ -6,13 +6,17 @@ using System.Windows.Controls;
 //using term_project.DataAccess;   // Assuming you have a DataAccess namespace
 using TMS_DataAccess;
 using TMS_BusinessLogic;
+using MySqlX.XDevAPI.Relational;
+using System;
+
 namespace term_project
 {
     public partial class BuyerDashboard : Window
     {
         public ObservableCollection<BuyerOrder> CustomerList { get; set; } = new ObservableCollection<BuyerOrder>();  // make sure to set it up right because if there ar eno get set then iut wont owrk
         public ObservableCollection<MarketPlaceValues> OrdersList { get; set; } = new ObservableCollection<MarketPlaceValues>();  // make sure to set it up right because if there ar eno get set then iut wont owrk
-        public MarketPlaceValues SelectedGrid { get; set; } = new MarketPlaceValues();  // make sure to set it up right because if there ar eno get set then iut wont owrk
+        public MarketPlaceValues SelectedGridMarket { get; set; } = new MarketPlaceValues();  // make sure to set it up right because if there ar eno get set then iut wont owrk
+        public BuyerOrder SelectedGridBuyer { get; set; } = new BuyerOrder();
         // it may be better to store the sqltables as class values so i dont have to get the table everytime, but if the sqltable were to be update without me knowing (eg someone elses computer change the table)
         // there could be conflicts so we will not
         public BuyerDashboard()
@@ -21,16 +25,12 @@ namespace term_project
             
         }
 
-        private void onManagerCustomerClick()
+        private void onManagerCustomerClick(string table)
         {
             BusinessLogic logic = new BusinessLogic();
             OrdersList.Clear();
             CustomerList.Clear();
             orderGrid.ItemsSource = CustomerList;
-            int firstColumnIndex = orderGrid.Columns[0].DisplayIndex;
-            orderGrid.Columns[0].DisplayIndex = orderGrid.Columns[1].DisplayIndex;
-            orderGrid.Columns[1].DisplayIndex = firstColumnIndex;
-            string table = "BuyerOrder";
             OrderTableStorage tableStorage= logic.GetTableCustomer(table);
 
             foreach (BuyerOrder item in tableStorage.OrdersListCustomer)
@@ -55,17 +55,13 @@ namespace term_project
             this.DataContext = this;    //update the grid
         }
 
-        private void OnGenerateInvoiceClick(object sender, RoutedEventArgs e)
-        {
-
-        }
 
 
         private void TabControl_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             var tabControl = sender as TabControl;
             var selectedTab = tabControl.SelectedItem as TabItem;
-
+            string table;
             if (selectedTab != null)
             {
                 switch (selectedTab.Name)
@@ -74,8 +70,8 @@ namespace term_project
                         OnManageContractsClick();
                         break;
                     case "TabManageCustomer":
-                        
-                        onManagerCustomerClick();
+                        table = "BuyerOrder";
+                        onManagerCustomerClick(table);
                         foreach (var column in orderGrid.Columns)
                         {
                             if (column.Header != null && column.Header.ToString() == "OrderID")
@@ -83,41 +79,80 @@ namespace term_project
                                 orderGrid.Columns.FirstOrDefault(c => c.Header.ToString() == "OrderID").DisplayIndex = 0;   //ignore warning there is a check for both if there are no headers and if order id even exists
                             }
                         }
-                        
                         break;
-                        // Add cases for other tabs as needed
+                    // Add cases for other tabs as needed
+                    case "TabCompletedOrders":
+                        table = "CompletedBuyerOrder";
+                        onManagerCustomerClick(table);
+                        foreach (var column in orderGrid.Columns)
+                        {
+                            if (column.Header != null && column.Header.ToString() == "OrderID")
+                            {
+                                orderGrid.Columns.FirstOrDefault(c => c.Header.ToString() == "OrderID").DisplayIndex = 0;   //ignore warning there is a check for both if there are no headers and if order id even exists
+                            }
+                        }
+                        break;
                 }
             }
         }
 
         private void orderGrid_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
+            bool marketplace = true;
             if (orderGrid.SelectedItem != null)
             {
-                SelectedGrid = (MarketPlaceValues)orderGrid.SelectedItem;// bind this to create a new class object of the selected item
+                for (int i=0; i<orderGrid.Columns.Count;i++) // use this to check if this is the market place or the buyer order class
+                {
+                    var columnName = orderGrid.Columns[i].Header.ToString();
+                    if(columnName=="Price")
+                    {
+                        marketplace = false;
+                        break;
+                    }
+
+                }
+                if (marketplace)
+                {
+                    SelectedGridMarket = (MarketPlaceValues)orderGrid.SelectedItem;// bind this to create a new class object of the selected item
+                    
+                }
+                else
+                {
+                    SelectedGridBuyer = (BuyerOrder)orderGrid.SelectedItem;// bind this to create a new class object of the selected item
+                }
             }
         }
 
         private void Init_Order(object sender, RoutedEventArgs e)
         {
-            OrderTableStorage tableStorage = new OrderTableStorage();
-            GetTable table= new GetTable();
-            int maxOrderID = table.LatestOrderIDSQL()+1;//plus one so it will now insert into a unused order id
-            if (maxOrderID != -1 && orderGrid.SelectedItem != null)
-            {
-                BuyerOrder newOrder = new BuyerOrder(maxOrderID, SelectedGrid, "None", "Pending", "unknown");
 
-                MessageBox.Show(table.InsertSQLTableBuyOrder("BuyerOrder", newOrder));
+            OrderTableStorage tableStorage = new OrderTableStorage();
+            BusinessLogic logic = new BusinessLogic();
+            if (orderGrid.SelectedItem != null)
+            {
+                logic.InsertSQL("BuyerOrder", SelectedGridMarket);
+
             }
             else if (orderGrid.SelectedItem == null)
             {
                 MessageBox.Show("Please select a row before Initating Order");
             }
-            else
-            {
-                MessageBox.Show("could not get latest Order Id from server");
-            }
 
+        }
+
+        private void Create_invoice_Click(object sender, RoutedEventArgs e)
+        {
+            OrderTableStorage tableStorage = new OrderTableStorage();
+            BusinessLogic logic = new BusinessLogic();
+            if ( orderGrid.SelectedItem != null)
+            {
+                MessageBox.Show(logic.CreateInvoice(SelectedGridBuyer));
+                
+            }
+            else 
+            {
+                MessageBox.Show("Please select a row before Creating an invoice");
+            }
 
         }
 
