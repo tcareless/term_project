@@ -31,10 +31,24 @@ namespace term_project
             OrdersList.Clear();
             CustomerList.Clear();
             orderGrid.ItemsSource = CustomerList;
-            OrderTableStorage tableStorage= logic.GetTableCustomer(table);
-
+            OrderTableStorage tableStorage= logic.GetTableCustomer(table);// populate the tablestorage
+            List<string> orders = new List<string>();
+            OrderTableStorage carrierStorage = logic.GetCarriers();
             foreach (BuyerOrder item in tableStorage.OrdersListCustomer)
             {
+                orders = new List<string>();
+                foreach(CarrierTable item2 in carrierStorage.CarrierList)
+                {
+                    if(item2.dCity== item.Destination && item.Status=="Pending")
+                    {
+                        orders.Add(item2.cName);
+                 
+                    }
+                   
+                }
+                item.AvailableCarriers = new ObservableCollection<string>(orders);  //fill the combo box
+
+
                 CustomerList.Add(item);// populate the object grid with the class object datagrid will auto make it for you
             }
             this.DataContext = this;    //update the grid
@@ -50,11 +64,11 @@ namespace term_project
             OrderTableStorage tableStorage = logic.GetTableMarket(table);
             foreach (MarketPlaceValues item in tableStorage.OrdersList)
             {
+                
                 OrdersList.Add(item);// populate the object grid with the class object datagrid will auto make it for you
             }
             this.DataContext = this;    //update the grid
         }
-
 
 
         private void TabControl_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -67,35 +81,36 @@ namespace term_project
                 switch (selectedTab.Name)
                 {
                     case "TabManageMarketplace":
+
+                        ToggleCombo(true);
                         OnManageContractsClick();
                         break;
                     case "TabManageCustomer":
+                        ToggleCombo(false);
                         table = "BuyerOrder";
                         onManagerCustomerClick(table);
-                        foreach (var column in orderGrid.Columns)
-                        {
-                            if (column.Header != null && column.Header.ToString() == "OrderID")
-                            {
-                                orderGrid.Columns.FirstOrDefault(c => c.Header.ToString() == "OrderID").DisplayIndex = 0;   //ignore warning there is a check for both if there are no headers and if order id even exists
-                            }
-                        }
+                        OrgOrderID();
                         break;
                     // Add cases for other tabs as needed
                     case "TabCompletedOrders":
+                        ToggleCombo(true);
                         table = "CompletedBuyerOrder";
                         onManagerCustomerClick(table);
-                        foreach (var column in orderGrid.Columns)
-                        {
-                            if (column.Header != null && column.Header.ToString() == "OrderID")
-                            {
-                                orderGrid.Columns.FirstOrDefault(c => c.Header.ToString() == "OrderID").DisplayIndex = 0;   //ignore warning there is a check for both if there are no headers and if order id even exists
-                            }
-                        }
+                        OrgOrderID();
                         break;
                 }
             }
         }
-
+        private void OrgOrderID()
+        {
+            foreach (var column in orderGrid.Columns)
+            {
+                if (column.Header != null && column.Header.ToString() == "OrderID")
+                {
+                    orderGrid.Columns.FirstOrDefault(c => c.Header.ToString() == "OrderID").DisplayIndex = 0;   //ignore warning there is a check for both if there are no headers and if order id even exists
+                }
+            }
+        }
         private void orderGrid_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             bool marketplace = true;
@@ -116,10 +131,7 @@ namespace term_project
                     SelectedGridMarket = (MarketPlaceValues)orderGrid.SelectedItem;// bind this to create a new class object of the selected item
                     
                 }
-                else
-                {
-                    SelectedGridBuyer = (BuyerOrder)orderGrid.SelectedItem;// bind this to create a new class object of the selected item
-                }
+
             }
         }
 
@@ -155,10 +167,64 @@ namespace term_project
             }
 
         }
+        private void ToggleCombo(bool HideCombo)
+        {
+            foreach (var column in orderGrid.Columns)
+            {
+                if (column.Header != null && column.Header.ToString() == "AvailableCarriersColumn")
+                {
+                    if (HideCombo)
+                    {
+                        column.Visibility = Visibility.Collapsed;
+                    }
+                    else if (!HideCombo)
+                    {
+                        column.Visibility = Visibility.Visible;
+                    }
+                }
+            }
+ 
+        }
+        private void orderGrid_AutoGeneratingColumn(object sender, DataGridAutoGeneratingColumnEventArgs e)
+        {
+            if (e.PropertyName == "AvailableCarriers")
+            {
+                e.Column.Visibility = Visibility.Collapsed;
+            }
 
-        // Other helper methods or event handlers as needed
+        }
 
-        // Other helper methods or event handlers as needed
+        private void Carrier_Changed(object sender, SelectionChangedEventArgs e)
+        {
+            GetTable tableRecorder = new GetTable();
+            BuyerOrder marketValues = new BuyerOrder();
+            OrderTableStorage tableStorage = new OrderTableStorage();
+            tableRecorder.connectCustomer(marketValues, tableStorage, "BuyerOrder");
+
+            List<BuyerOrder> ContractList = tableStorage.OrdersListCustomer;     //reference to this
+
+            foreach (var item in orderGrid.SelectedItems)
+            {
+                var selectedItem = item as BuyerOrder;// break it down even further to be usable
+                if (selectedItem != null)
+                {
+
+                    // add the funny question mark so the compiler can stop being annoying about null values
+                    BuyerOrder? Buyer = ContractList.FirstOrDefault(x => x.OrderID == selectedItem.OrderID); //this value will never be a null because it is a primary key and set to not null
+                    if (Buyer != null)
+                    {
+                           
+                        MessageBox.Show(tableRecorder.UpdateSQLTable(selectedItem.OrderID, "BuyerOrder", selectedItem.Carrier));
+                    }
+                    // MessageBox.Show(market.Order_ID.ToString() + market.Status);
+                    //table is updated but we need to now update the sql tableDD
+                    
+                }
+            }
+
+        }
+
+
     }
 }
 

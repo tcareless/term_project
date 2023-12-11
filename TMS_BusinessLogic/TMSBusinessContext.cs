@@ -32,6 +32,15 @@ namespace TMS_BusinessLogic
             tableRecorder.connectCustomer(marketValues, tableStorage, table);
             return tableStorage;
         }
+        public OrderTableStorage GetCarriers()
+        {
+
+            GetTable tableRecorder = new GetTable();
+            BuyerOrder marketValues = new BuyerOrder();
+            OrderTableStorage tableStorage = new OrderTableStorage();
+            tableRecorder.GetCarrier(tableStorage);
+            return tableStorage;
+        }
         public string CreateInvoice(BuyerOrder order)
         {
             string currentDirectory = Environment.CurrentDirectory;

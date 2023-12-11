@@ -13,17 +13,17 @@ namespace TMS_DataAccess
     {
 
 #pragma warning restore CS0219 // Variable is assigned but its value is never used
-        public bool UpdateSQLTable(int order_id, string Table, string status)
+        public string UpdateSQLTable(int order_id, string Table, string newCarrier)
         {
             string connectionString = "server=localhost;database=termproject;uid=root;pwd=Jackass12!";
-            string query = $"UPDATE {Table} SET Status = @NewStatus WHERE Order_ID = @OrderID";// table has to be l
+            string query = $"UPDATE {Table} SET Carrier = @newCarrier WHERE Order_ID = @OrderID";// table has to be l
             using (MySqlConnection conn = new MySqlConnection(connectionString))
             {
                 using (MySqlCommand cmd = new MySqlCommand(query, conn))
                 {
                     // Add parameters to prevent SQL injection
                     //    cmd.Parameters.AddWithValue("@Table", Table);
-                    cmd.Parameters.AddWithValue("@NewStatus", status);
+                    cmd.Parameters.AddWithValue("@newCarrier", newCarrier);
                     cmd.Parameters.AddWithValue("@OrderID", order_id);
 
 
@@ -35,22 +35,22 @@ namespace TMS_DataAccess
 
                         if (result > 0)
                         {
-                            return true;
+                            return "yes";
                             //worked display
                         }
                         else
                         {
-                            return false;
+                            return "nope";
                             //failed display
                         }
                     }
                     catch (MySqlException ex)
                     {
-                        //exception will add later
+                        return ex.Message;
                     }
                 }
             }
-            return false;
+            return "nope";
         }
         public int LatestOrderIDSQL()
         {
@@ -192,7 +192,53 @@ namespace TMS_DataAccess
 
 
         }
-        public void connectCustomer(BuyerOrder marketStorage, OrderTableStorage OrderTableStorage, string Table)
+        public void GetCarrier(OrderTableStorage OrderTableStorage)
+        {
+            string connectionString = "server=localhost;database=termproject;uid=root;pwd=Jackass12!";
+            try
+            {
+                using (MySqlConnection connection = new MySqlConnection(connectionString))
+                {
+                    connection.Open();
+
+                    string query = "SELECT cName, dCity FROM Carriers"; // Replace with your table name
+
+                    using (MySqlCommand command = new MySqlCommand(query, connection))
+                    {
+                        using (MySqlDataReader reader = command.ExecuteReader())
+                        {
+                            while (reader.Read())
+                            {
+
+                                if (!reader.IsDBNull(reader.GetOrdinal("cName")) && !reader.IsDBNull(reader.GetOrdinal("dCity")))
+                                {
+                                    CarrierTable carrierSelect = new CarrierTable();
+
+                                    carrierSelect.cName = reader["cName"].ToString();
+                                    carrierSelect.dCity = reader["dCity"].ToString();
+
+                                    OrderTableStorage.CarrierList.Add(carrierSelect);
+                                }
+
+
+
+
+                                // Add more columns as per your table structure
+
+
+                            }
+                        }
+                    }
+
+                    connection.Close();
+                }
+            }
+            catch (MySqlException ex)
+            {
+                Console.WriteLine("Error: " + ex.ToString());
+            }
+        }
+        public void connectCustomer(BuyerOrder BuyerStorage, OrderTableStorage OrderTableStorage, string Table)
         {
             string connectionString = "server=localhost;database=termproject;uid=root;pwd=Jackass12!";
             try
@@ -212,18 +258,21 @@ namespace TMS_DataAccess
 
                                 if (!reader.IsDBNull(reader.GetOrdinal("Van_Type")) && !reader.IsDBNull(reader.GetOrdinal("Order_ID")) && !reader.IsDBNull(reader.GetOrdinal("Client_Name")) && !reader.IsDBNull(reader.GetOrdinal("Job_Type")) && !reader.IsDBNull(reader.GetOrdinal("Quantity")) && !reader.IsDBNull(reader.GetOrdinal("Origin")) && !reader.IsDBNull(reader.GetOrdinal("Carrier")) && !reader.IsDBNull(reader.GetOrdinal("Destination")) && !reader.IsDBNull(reader.GetOrdinal("Status")))
                                 {
-                                    marketStorage.OrderID = (int)reader["Order_ID"];
-                                    marketStorage.ClientName = reader["Client_Name"].ToString();
-                                    marketStorage.JobType = (int)reader["Job_Type"];
-                                    marketStorage.Quantity = (int)reader["Quantity"];
-                                    marketStorage.Carrier = reader["Carrier"].ToString();     // ignore warning because the value is set to no null in the sql
-                                    marketStorage.Origin = reader["Origin"].ToString();     // ignore warning because the value is set to no null in the sql
-                                    marketStorage.Destination = reader["Destination"].ToString();     // ignore warning because the value is set to no null in the sql
-                                    marketStorage.VanType = (int)reader["Van_Type"];     // ignore warning because the value is set to no null in the sql
-                                    marketStorage.Status = reader["Status"].ToString();     // ignore warning because the value is set to no null in the sql
-                                    marketStorage.Price = reader["Price"].ToString();     // ignore warning because the value is set to no null in the sql
-                                                                                          // we gotta do this instead of inserting the changes class because we will only insert a reference and not a class object 
-                                    BuyerOrder newStorage = new BuyerOrder(marketStorage);
+                                    BuyerStorage.OrderID = (int)reader["Order_ID"];
+                                    BuyerStorage.ClientName = reader["Client_Name"].ToString();
+                                    BuyerStorage.JobType = (int)reader["Job_Type"];
+                                    BuyerStorage.Quantity = (int)reader["Quantity"];
+                                    BuyerStorage.Carrier = reader["Carrier"].ToString();     // ignore warning because the value is set to no null in the sql
+                                    BuyerStorage.Origin = reader["Origin"].ToString();     // ignore warning because the value is set to no null in the sql
+                                    BuyerStorage.Destination = reader["Destination"].ToString();     // ignore warning because the value is set to no null in the sql
+                                    BuyerStorage.VanType = (int)reader["Van_Type"];     // ignore warning because the value is set to no null in the sql
+                                    BuyerStorage.Status = reader["Status"].ToString();     // ignore warning because the value is set to no null in the sql
+                                    BuyerStorage.Price = reader["Price"].ToString();     // ignore warning because the value is set to no null in the sql
+                                    
+
+                                  //  BuyerStorage.carrierChoice.Add("hi2");
+                                    // we gotta do this instead of inserting the changes class because we will only insert a reference and not a class object 
+                                    BuyerOrder newStorage = new BuyerOrder(BuyerStorage);
                                     OrderTableStorage.OrdersListCustomer.Add(newStorage);
                                 }
 
