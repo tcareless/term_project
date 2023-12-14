@@ -1,5 +1,4 @@
 ﻿using System.Windows;
-using System;
 
 namespace term_project
 {
@@ -10,7 +9,6 @@ namespace term_project
             InitializeComponent();
         }
 
-      
         private void OpenAdminDashboard(object sender, RoutedEventArgs e)
         {
             AdminDashboard adminWindow = new AdminDashboard();
