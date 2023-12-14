@@ -13,6 +13,7 @@ namespace TMS_DataAccess
     {
 
 #pragma warning restore CS0219 // Variable is assigned but its value is never used
+
         public string UpdateSQLTable(int order_id, string Table, string newCarrier)
         {
             string connectionString = "server=localhost;database=termproject;uid=root;pwd=Jackass12!";
@@ -50,7 +51,7 @@ namespace TMS_DataAccess
                     }
                 }
             }
-            return "nope";
+   
         }
         public int LatestOrderIDSQL()
         {
