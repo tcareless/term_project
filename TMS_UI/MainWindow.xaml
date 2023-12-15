@@ -1,7 +1,7 @@
 ﻿<Window x:Class="term_project.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="TMS - Transportation Management System" Height="350" Width="450">
+        Title="TMS - Transportation Management System" Height="450" Width="450">
 
     <Window.Resources>
         <!-- Style for buttons, matched with AdminDashboard style -->
@@ -21,9 +21,23 @@
 
     <Grid Background="#FF333333">
         <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+
+            <!-- Admin Dashboard -->
+            <Label Content="Enter Admin Password:" Foreground="White" HorizontalAlignment="Center"/>
+            <PasswordBox x:Name="AdminPasswordBox" Width="200" Height="30" Margin="10"/>
             <Button Content="Admin Dashboard" Style="{StaticResource RoleButtonStyle}" Click="OpenAdminDashboard"/>
+
+            <!-- Buyer Dashboard -->
+            <Label Content="Enter Buyer Password:" Foreground="White" HorizontalAlignment="Center"/>
+            <PasswordBox x:Name="BuyerPasswordBox" Width="200" Height="30" Margin="10"/>
             <Button Content="Buyer Dashboard" Style="{StaticResource RoleButtonStyle}" Click="OpenBuyerDashboard"/>
+
+            <!-- Planner Dashboard -->
+            <Label Content="Enter Planner Password:" Foreground="White" HorizontalAlignment="Center"/>
+            <PasswordBox x:Name="PlannerPasswordBox" Width="200" Height="30" Margin="10"/>
             <Button Content="Planner Dashboard" Style="{StaticResource RoleButtonStyle}" Click="OpenPlannerDashboard"/>
+
+            <TextBlock x:Name="FeedbackText" Foreground="Red" HorizontalAlignment="Center" Margin="10"/>
         </StackPanel>
     </Grid>
 </Window>

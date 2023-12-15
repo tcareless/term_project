@@ -10,23 +10,46 @@ namespace term_project
             InitializeComponent();
         }
 
-      
         private void OpenAdminDashboard(object sender, RoutedEventArgs e)
         {
-            AdminDashboard adminWindow = new AdminDashboard();
-            adminWindow.Show();
+            if (AdminPasswordBox.Password == "admin")
+            {
+                AdminDashboard adminWindow = new AdminDashboard();
+                adminWindow.Show();
+                FeedbackText.Text = "";
+            }
+            else
+            {
+                FeedbackText.Text = "Incorrect password for Admin Dashboard.";
+            }
         }
 
         private void OpenBuyerDashboard(object sender, RoutedEventArgs e)
         {
-            BuyerDashboard buyerWindow = new BuyerDashboard();
-            buyerWindow.Show();
+            if (BuyerPasswordBox.Password == "buyer")
+            {
+                BuyerDashboard buyerWindow = new BuyerDashboard();
+                buyerWindow.Show();
+                FeedbackText.Text = "";
+            }
+            else
+            {
+                FeedbackText.Text = "Incorrect password for Buyer Dashboard.";
+            }
         }
 
         private void OpenPlannerDashboard(object sender, RoutedEventArgs e)
         {
-            PlannerDashboard plannerWindow = new PlannerDashboard();
-            plannerWindow.Show();
+            if (PlannerPasswordBox.Password == "planner")
+            {
+                PlannerDashboard plannerWindow = new PlannerDashboard();
+                plannerWindow.Show();
+                FeedbackText.Text = "";
+            }
+            else
+            {
+                FeedbackText.Text = "Incorrect password for Planner Dashboard.";
+            }
         }
     }
 }
