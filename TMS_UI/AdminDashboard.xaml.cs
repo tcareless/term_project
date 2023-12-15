@@ -1,296 +1,965 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.IO;
+using System.Threading;
 using System.Windows;
+using MySql.Data.MySqlClient;
+using Microsoft.Win32;
+using System.Linq;
 //using term_project.BusinessLogic; // Assuming you have a BusinessLogic namespace
 //using term_project.DataAccess;   // Assuming you have a DataAccess namespace
 
 namespace term_project
 {
+    public enum RateFeeOperation
+    {
+        None,
+        Add,
+        Update,
+        Delete
+    }
+
+    public enum CarrierOperation
+    {
+        None,
+        Add,
+        Update,
+        Delete
+    }
+
+    public enum RouteOperation
+    {
+        None,
+        Add,
+        Update,
+        Delete
+    }
+
     public partial class AdminDashboard : Window
     {
+        public string CurrentLogDirectory { get; set; } = "default_log_directory"; // Default value
+        public string CurrentDbmsIP { get; set; } = "default_ip_address"; // Default value
+        public int CurrentDbmsPort { get; set; } = 3306; // Default port number
+        public ObservableCollection<Carrier> Carriers { get; set; }
+        public ObservableCollection<Route> Routes { get; set; }
+        public ObservableCollection<User> Users { get; set; }
+        public ObservableCollection<LogEntry> LogEntries { get; set; }
+        public ObservableCollection<RateFee> RateFees { get; set; }
+
+
+        private RateFeeOperation currentOperation = RateFeeOperation.None;
+        private RateFee? selectedRateFeeForEdit;
+        private CarrierOperation currentCarrierOperation = CarrierOperation.None;
+        private RouteOperation currentRouteOperation = RouteOperation.None;
+
+        private int currentPage = 1;
+        private int itemsPerPage = 30;
+        private int totalItems = 0;
+
         public AdminDashboard()
         {
             InitializeComponent();
+            this.DataContext = this; // Set the data context for data binding
+
+            Users = new ObservableCollection<User>();
+            UsersDataGrid.ItemsSource = Users;
+
+            LogEntries = new ObservableCollection<LogEntry>();
+            LogsDataGrid.ItemsSource = LogEntries;
+
+            RateFees = new ObservableCollection<RateFee>();
+            RateFeeDataGrid.ItemsSource = RateFees;
+
+            LoadSettings(); // Call this method to load initial settings
+            LoadUsers(); // Call a method to load users from the database
+
+            Carriers = new ObservableCollection<Carrier>();
+            Routes = new ObservableCollection<Route>();
         }
 
-        // User Management
-        private void OnUserManagementClick(object sender, RoutedEventArgs e)
+
+        private void LoadUsers()
         {
-            // Step 1: Initialize the User Management Interface
-            // TODO: Load the User Management screen or control, such as a UserControl in the current window
-
-            // Step 2: Fetch User Data
-            // TODO: Call a method from UserManagementManager to fetch all user data
-            // This data might include user IDs, names, roles, status, last login, etc.
-
-            // Step 3: Display User Data
-            // TODO: Display the fetched data in a user-friendly format, like a DataGrid or ListView
-            // Ensure the data grid has columns for all relevant user data
-
-            // Step 4: Provide Interactive Elements for User Management
-            // TODO: Add interactive elements like buttons or context menu options for adding, editing, and deleting users
-
-            // Step 5: Add User Functionality
-            // TODO: Implement the 'Add User' functionality
-            // This might involve opening a new form or dialog where admin can enter new user details
-            // After submission, validate the data and send it to UserManagementManager to add the new user
-
-            // Step 6: Edit User Functionality
-            // TODO: Implement the 'Edit User' functionality
-            // Allow admin to select a user and edit their details
-            // After editing, validate the changes and send them to UserManagementManager to update the user
-
-            // Step 7: Delete User Functionality
-            // TODO: Implement the 'Delete User' functionality
-            // Allow admin to select a user and delete them after confirmation
-            // Send the delete command to UserManagementManager to remove the user
-
-            // Step 8: Handling Responses and Feedback
-            // TODO: After each add, edit, or delete operation, handle the response from the UserManagementManager
-            // If an operation is successful, show a success message
-            // If an operation fails, show an error message explaining the failure
-
-            // Step 9: Refreshing Data
-            // TODO: After any add, edit, or delete operation, refresh the displayed user data to reflect the changes
-
-            // Step 10: Additional Functionalities (Optional)
-            // TODO: Implement additional functionalities as needed, such as user role assignments, resetting passwords, etc.
-
-            // Step 11: Error Handling
-            // TODO: Implement comprehensive error handling throughout the user management process
-            // This includes handling network issues, database errors, and other unexpected exceptions
-
-            // Step 12: Closing or Exiting User Management Interface
-            // TODO: Provide a way to close or exit the user management interface and return to the main admin dashboard
+            Users.Clear();
+            try
+            {
+                using (var connection = DatabaseHelper.GetConnection())
+                {
+                    connection.Open();
+                    string query = "SELECT * FROM Users;";
+                    using (var command = new MySqlCommand(query, connection))
+                    using (var reader = command.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            var user = new User
+                            {
+                                UserId = reader.IsDBNull(reader.GetOrdinal("UserId")) ? null : reader.GetInt32("UserId"),
+                                Username = reader.IsDBNull(reader.GetOrdinal("Username")) ? null : reader.GetString("Username"),
+                                FullName = reader.IsDBNull(reader.GetOrdinal("FullName")) ? null : reader.GetString("FullName"),
+                                Email = reader.IsDBNull(reader.GetOrdinal("Email")) ? null : reader.GetString("Email"),
+                                Role = reader.IsDBNull(reader.GetOrdinal("Role")) ? null : reader.GetString("Role"),
+                                Status = reader.IsDBNull(reader.GetOrdinal("Status")) ? null : reader.GetString("Status"),
+                                CreationDate = reader.GetDateTime("CreationDate"),
+                                LastModifiedDate = reader.GetDateTime("LastModifiedDate")
+                            };
+                            Users.Add(user);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Error loading users: " + ex.Message);
+            }
         }
 
-        // System Logs
-        private void OnViewLogsClick(object sender, RoutedEventArgs e)
+        private void AddUser(object sender, RoutedEventArgs e)
         {
-            // Step 1: Initialize the System Logs Interface
-            // TODO: Load the System Logs screen or control, such as a UserControl in the current window
-
-            // Step 2: Fetch Log Data
-            // TODO: Call a method from a LogManager (or similar) to fetch system log entries
-            // Log entries might include timestamps, log levels (info, warning, error), messages, user IDs, and other relevant data
-
-            // Step 3: Display Log Data
-            // TODO: Display the fetched log data in a user-friendly format, like a DataGrid or ListView
-            // Ensure columns for all relevant log data are present
-
-            // Step 4: Provide Filtering Options
-            // TODO: Implement filtering capabilities to view logs by different criteria such as date range, log level, user, etc.
-            // This might involve UI elements like dropdowns, date pickers, and text boxes for input
-
-            // Step 5: Implement Search Functionality
-            // TODO: Add a search bar to enable searching within the log entries
-            // Implement the search logic to filter log entries based on the search query
-
-            // Step 6: Log Entry Selection and Detailed View
-            // TODO: Allow admins to select a log entry and view detailed information in a separate pane or popup
-            // This detailed view might include full log messages, stack traces for errors, and associated user or system information
-
-            // Step 7: Refresh and Update Logs
-            // TODO: Provide a way to refresh the log entries to fetch the latest data
-
-            // Step 8: Exporting Logs
-            // TODO: Provide an option to export the displayed logs, either all or filtered, to a .txt file
-            // Implement the logic to generate and save the file
-
-            // Step 9: Error Handling in Log Interface
-            // TODO: Implement comprehensive error handling for log fetching, displaying, and exporting
-            // Display appropriate error messages for any failures
-
-            // Step 10: Navigation and Exit
-            // TODO: Provide a way to close or exit the system logs interface and return to the main admin dashboard
-
-            // Step 11: Optional Additional Functionalities
-            // TODO: Consider additional functionalities like marking logs as reviewed, deleting old logs, etc., if relevant
+            var newUser = new User { CreationDate = DateTime.Now, LastModifiedDate = DateTime.Now };
+            DatabaseHelper.AddUser(newUser);
+            Users.Add(newUser);
         }
 
-
-        // Database Backup
-        private void OnDatabaseBackupClick(object sender, RoutedEventArgs e)
+        private void DeleteUser(object sender, RoutedEventArgs e)
         {
-            // Step 1: Pre-Backup Preparation
-            // TODO: Verify if the system is ready for a backup
-            // This might include checking server load, ensuring database connectivity, and confirming user permissions
-
-            // Step 2: User Confirmation
-            // TODO: Prompt the admin for confirmation before starting the backup process
-            // This could be a simple dialog box asking for confirmation to proceed
-
-            // Step 3: Trigger Backup Process
-            BackupDatabase();
+            if (UsersDataGrid.SelectedItem is User selectedUser)
+            {
+                DatabaseHelper.DeleteUser(selectedUser.UserId ?? 0);
+                Users.Remove(selectedUser);
+            }
+            else
+            {
+                MessageBox.Show("Please select a user to delete.");
+            }
         }
 
-        private void BackupDatabase()
+        private void RefreshLogs(object sender, RoutedEventArgs e)
         {
-            // Step 4: Define Backup Parameters
-            // TODO: Set up the necessary parameters for the backup
-            // This includes the database name, file path for the backup, file naming conventions (possibly with a timestamp)
-
-            // Step 5: Execute Backup Command
-            // TODO: Execute the database backup command or process
-            // This could involve calling a script, using database management tools, or invoking database-specific backup commands
-
-            // Step 6: Monitor Backup Progress
-            // TODO: Implement a way to monitor the progress of the backup
-            // This could include displaying a progress bar or providing real-time feedback to the admin
-
-            // Step 7: Post-Backup Process
-            // TODO: After the backup is completed, perform any necessary post-backup steps
-            // This might include validating the backup file, cleaning up temporary files, or updating backup logs
-
-            // Step 8: Handle Backup Outcome
-            // TODO: Determine the outcome of the backup process
-            // If successful, display a success message with relevant details (e.g., file location, size)
-            // If unsuccessful, catch the error and display an appropriate error message
-
-            // Step 9: Log Backup Activity
-            // TODO: Log the backup activity for auditing and historical purposes
-            // Include details like timestamp, admin user who initiated the backup, outcome, etc.
-
-            // Step 10: Optional Notifications
-            // TODO: Optionally, send notifications about the backup status
-            // This could be via email, system logs, or other notification mechanisms
+            LogEntries.Clear();
+            try
+            {
+                var logLines = File.ReadAllLines("logs.txt");
+                foreach (var line in logLines)
+                {
+                    var parts = line.Split(',');
+                    LogEntries.Add(new LogEntry
+                    {
+                        Timestamp = DateTime.Parse(parts[0]),
+                        Level = parts[1].Trim(),
+                        Message = parts[2].Trim()
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error reading logs: {ex.Message}");
+            }
         }
 
-
-        // Settings
-        private void OnSettingsClick(object sender, RoutedEventArgs e)
+        private void AddRateFee(object sender, RoutedEventArgs e)
         {
-            // Step 1: Initialize the Settings Interface
-            // TODO: Load the Settings screen or control, such as a UserControl in the current window
-
-            // Step 2: Fetch Current Settings
-            // TODO: Call a method from a SettingsManager (or similar) to fetch current system settings
-            // These settings might include application configurations, user preferences, system parameters, etc.
-
-            // Step 3: Display Settings Data
-            // TODO: Display the fetched settings in a user-friendly and editable format, like forms with textboxes, dropdowns, toggles, etc.
-            // Ensure there are UI elements for all modifiable settings
-
-            // Step 4: Provide Input Validation
-            // TODO: Implement input validation for each setting
-            // Ensure that the input values meet the required criteria (like format, range, etc.)
-
-            // Step 5: Capture and Save Changes
-            // TODO: Provide a 'Save' or 'Apply' button to capture and persist changes made to the settings
-            // On button click, validate all inputs and then send the updated settings to SettingsManager to save
-
-            // Step 6: Feedback on Saving Settings
-            // TODO: After saving, provide feedback to the admin
-            // If successful, show a success message
-            // If there’s an error (validation failure or save error), show an appropriate error message
-
-            // Step 7: Revert and Reset Options
-            // TODO: Implement a 'Revert' button to undo any unsaved changes
-            // Optionally, consider a 'Reset to Defaults' option to restore default settings
-
-            // Step 9: Error Handling
-            // TODO: Implement comprehensive error handling for the settings process
-            // This includes handling failures in loading, displaying, validating, and saving settings
-
-            // Step 10: Navigation and Exit
-            // TODO: Provide a way to close or exit the settings interface and return to the main admin dashboard
-
+            // Set up UI for adding a new rate fee (e.g., clear input fields)
+            currentOperation = RateFeeOperation.Add;
+            // Clear the form or set up for a new entry
         }
 
-
-        // Additional Functionalities
-        private void OnManageConfigurationClick(object sender, RoutedEventArgs e)
+        private void UpdateRateFee(object sender, RoutedEventArgs e)
         {
-            // Step 1: Initialize the Configuration Management Interface
-            // TODO: Load the Configuration Management screen or control, such as a UserControl in the current window
-
-            // Step 2: Fetch Configuration Data
-            // TODO: Call a method from a ConfigurationManager (or similar) to fetch current configuration settings
-            // Configuration settings might include system parameters, feature toggles, threshold values, etc.
-
-            // Step 3: Display Configuration Data
-            // TODO: Display the fetched configuration settings in an editable format, like forms with textboxes, dropdowns, checkboxes, etc.
-            // Ensure there are UI elements for all configurable settings
-
-            // Step 4: Provide Input Validation
-            // TODO: Implement input validation for each configuration setting
-            // Ensure that the input values are valid and within the required criteria (format, range, dependencies, etc.)
-
-            // Step 5: Capture and Persist Changes
-            // TODO: Provide a 'Save' or 'Apply' button to capture and save changes made to the configuration settings
-            // On button click, validate all inputs and then send the updated configuration to ConfigurationManager to persist
-
-            // Step 6: Feedback on Saving Configuration
-            // TODO: After saving, provide feedback to the admin
-            // If successful, show a success message
-            // If there’s an error (validation failure or saving error), show an appropriate error message
-
-            // Step 7: Revert and Reset Options
-            // TODO: Implement a 'Revert' button to undo any unsaved changes
-            // Optionally, consider a 'Reset to Defaults' option for certain configuration settings
-
-            // Step 9: Advanced Configuration Options
-            // TODO: If necessary, provide an 'Advanced Configuration' section for settings that require deeper technical understanding
-            // Implement necessary warnings and confirmations for changes that could significantly affect system behavior
-
-            // Step 10: Error Handling and Security
-            // TODO: Implement comprehensive error handling for the configuration management process
-            // Ensure security measures are in place to prevent unauthorized access or modifications
-
-            // Step 11: Navigation and Exit
-            // TODO: Provide a way to close or exit the configuration management interface and return to the main admin dashboard
-
-            // Step 12: Documentation and Help
-            // TODO: Optionally, provide inline documentation or help icons to explain each configuration setting, aiding in understanding and preventing misconfiguration
+            if (RateFeeDataGrid.SelectedItem is RateFee selectedRateFee)
+            {
+                selectedRateFeeForEdit = selectedRateFee;
+                // Load selected rate fee data into input fields for editing
+                // Example: Populate form fields with selectedRateFee data
+                currentOperation = RateFeeOperation.Update;
+            }
+            else
+            {
+                MessageBox.Show("Please select a rate/fee to update.");
+            }
         }
 
-
-        private void OnDataAlterationClick(object sender, RoutedEventArgs e)
+        private void DeleteRateFee(object sender, RoutedEventArgs e)
         {
-            // Step 1: Initialize the Data Alteration Interface
-            // TODO: Load the Data Alteration screen or control, such as a UserControl in the current window
-
-            // Step 2: Security and Access Control
-            // TODO: Implement security checks to ensure only authorized administrators have access to this feature
-            // Consider additional authentication or confirmation steps for added security
-
-            // Step 3: Selecting Data for Manipulation
-            // TODO: Provide a mechanism for admins to select the data they wish to alter
-            // This could include selecting a database table, specifying query parameters, or browsing through records
-
-            // Step 4: Displaying Data for Alteration
-            // TODO: Display the selected data in an editable format, such as a grid or form
-            // Ensure the interface allows for clear identification and modification of data fields
-
-            // Step 5: Data Validation
-            // TODO: Implement input validation for all data fields
-            // Ensure that modifications adhere to data integrity rules, formats, and constraints
-
-            // Step 6: Executing Data Changes
-            // TODO: Provide 'Save' or 'Apply' options to execute the data changes
-            // Confirm the changes before applying to prevent accidental data modification
-
-            // Step 7: Transaction Management
-            // TODO: Implement transaction handling to ensure data changes are atomic and can be rolled back in case of an error
-
-            // Step 8: Feedback and Notifications
-            // TODO: After applying changes, provide feedback to the administrator
-            // Display success messages or detailed error messages in case of failure
-
-            // Step 9: Auditing and Logging
-            // TODO: Log all data alterations for auditing purposes
-            // Include details like timestamp, admin user, nature of change, etc.
-
-            // Step 10: Error Handling
-            // TODO: Implement comprehensive error handling throughout the data alteration process
-            // Catch and manage exceptions to prevent system crashes and data corruption
-
-            // Step 11: Interface Exit
-            // TODO: Provide a clear and safe way to exit the data alteration interface and return to the main admin dashboard
-
-            // Step 12: Additional Safety Features (Optional)
-            // TODO: Consider implementing additional safety features, such as previewing changes before applying, or requiring a second admin’s approval for critical alterations
+            if (RateFeeDataGrid.SelectedItem is RateFee selectedRateFee)
+            {
+                selectedRateFeeForEdit = selectedRateFee;
+                currentOperation = RateFeeOperation.Delete;
+            }
+            else
+            {
+                MessageBox.Show("Please select a rate/fee to delete.");
+            }
         }
 
+        private void RefreshRateFees(object sender, RoutedEventArgs e)
+        {
+            RateFees.Clear();
+            try
+            {
+                using (var connection = DatabaseHelper.GetConnection())
+                {
+                    connection.Open();
+                    string query = "SELECT * FROM RateFees;";
+                    using (var command = new MySqlCommand(query, connection))
+                    using (var reader = command.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                         
+                            var rateFee = new RateFee
+                            {
+                                RateFeeId = reader.GetInt32("RateFeeId"),
+                                
+                                Rate = reader.GetDecimal("Rate"),
+                                Description = reader.IsDBNull(reader.GetOrdinal("Description")) ? null : reader.GetString("Description")
+                            };
+                            RateFees.Add(rateFee);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Error refreshing rate fees: " + ex.Message);
+            }
+        }
+
+        private void ConfirmAddUserButton_Click(object sender, RoutedEventArgs e)
+        {
+            var newUser = new User
+            {
+                Username = UsernameTextBox.Text,
+                FullName = FullNameTextBox.Text,
+                Email = EmailTextBox.Text,
+                Role = RoleTextBox.Text,
+                Status = StatusTextBox.Text,
+                CreationDate = DateTime.Now,
+                LastModifiedDate = DateTime.Now
+            };
+
+            DatabaseHelper.AddUser(newUser);
+
+            Users.Add(newUser);
+
+            // Clear text boxes or give some success message
+            MessageBox.Show("User added successfully.");
+        }
+
+        private void SubmitChanges(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                switch (currentOperation)
+                {
+                    case RateFeeOperation.Add:
+                        var newRateFee = new RateFee
+                        {
+                            Rate = decimal.Parse(RateTextBox.Text), // Parsing the text to decimal
+                            Description = DescriptionTextBox.Text   // Directly taking the string
+                        };
+                        DatabaseHelper.AddRateFee(newRateFee);
+                        RateFees.Add(newRateFee);
+                        MessageBox.Show("Rate fee added successfully.");
+                        break;
+
+                    case RateFeeOperation.Update:
+                        if (selectedRateFeeForEdit != null)
+                        {
+                            selectedRateFeeForEdit.Rate = decimal.Parse(RateTextBox.Text);
+                            selectedRateFeeForEdit.Description = DescriptionTextBox.Text;
+                            DatabaseHelper.UpdateRateFee(selectedRateFeeForEdit);
+                            MessageBox.Show("Rate fee updated successfully.");
+                        }
+                        break;
+
+                    case RateFeeOperation.Delete:
+                        if (selectedRateFeeForEdit != null)
+                        {
+                            DatabaseHelper.DeleteRateFee(selectedRateFeeForEdit.RateFeeId);
+                            RateFees.Remove(selectedRateFeeForEdit);
+                            MessageBox.Show("Rate fee deleted successfully.");
+                        }
+                        break;
+                }
+
+                currentOperation = RateFeeOperation.None;
+                // Reset UI as needed, e.g., clear form fields
+                RateTextBox.Clear();
+                DescriptionTextBox.Clear();
+            }
+            catch (FormatException)
+            {
+                MessageBox.Show("Error: Invalid format for rate. Please enter a valid decimal number.");
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("An error occurred: " + ex.Message);
+            }
+        }
+
+        private void SubmitCarrierChanges(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                switch (currentCarrierOperation)
+                {
+                    case CarrierOperation.Add:
+                        var newCarrier = new Carrier
+                        {
+                            cName = CarrierNameTextBox.Text,
+                            dCity = CarrierCityTextBox.Text
+                        };
+                        DatabaseHelper.AddCarrier(newCarrier);
+                        Carriers.Add(newCarrier);
+                        MessageBox.Show("Carrier added successfully.");
+                        break;
+
+                    case CarrierOperation.Update:
+                        // Logic to update the selected carrier
+                        break;
+
+                    case CarrierOperation.Delete:
+                        // Logic to delete the selected carrier
+                        break;
+                }
+
+                currentCarrierOperation = CarrierOperation.None;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("An error occurred: " + ex.Message);
+            }
+        }
+
+        private void SubmitRouteChanges(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                switch (currentRouteOperation)
+                {
+                    case RouteOperation.Add:
+                        var newRoute = new Route
+                        {
+                            // Assign properties from the form fields
+                        };
+                        DatabaseHelper.AddRoute(newRoute);
+                        Routes.Add(newRoute);
+                        MessageBox.Show("Route added successfully.");
+                        break;
+
+                    case RouteOperation.Update:
+                        // Logic to update the selected route
+                        break;
+
+                    case RouteOperation.Delete:
+                        // Logic to delete the selected route
+                        break;
+                }
+
+                currentRouteOperation = RouteOperation.None;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("An error occurred: " + ex.Message);
+            }
+        }
+
+
+
+
+        /*==========================Carrier==================================*/
+
+        // Add Carrier
+        private void AddCarrier(object sender, RoutedEventArgs e)
+        {
+            var newCarrier = new Carrier
+            {
+                cName = CarrierNameTextBox.Text,
+                dCity = CarrierCityTextBox.Text
+            };
+
+            DatabaseHelper.AddCarrier(newCarrier); // This should handle adding to the database
+            Carriers.Add(newCarrier); // Add to the ObservableCollection
+            MessageBox.Show("Carrier added successfully.");
+
+            // Clear the text boxes after adding
+            CarrierNameTextBox.Clear();
+            CarrierCityTextBox.Clear();
+        }
+
+        // Update Carrier
+        private void UpdateCarrier(object sender, RoutedEventArgs e)
+        {
+            if (CarriersDataGrid.SelectedItem is Carrier selectedCarrier)
+            {
+                selectedCarrier.cName = CarrierNameTextBox.Text;
+                selectedCarrier.dCity = CarrierCityTextBox.Text;
+
+                DatabaseHelper.UpdateCarrier(selectedCarrier); // This should handle updating the database
+                MessageBox.Show("Carrier updated successfully.");
+
+            }
+            else
+            {
+                MessageBox.Show("Please select a carrier to update.");
+            }
+        }
+
+        // Delete Carrier
+        private void DeleteCarrier(object sender, RoutedEventArgs e)
+        {
+            if (CarriersDataGrid.SelectedItem is Carrier selectedCarrier)
+            {
+                DatabaseHelper.DeleteCarrier(selectedCarrier.CarrierID); // This should handle deletion from the database
+                Carriers.Remove(selectedCarrier); // Remove from the ObservableCollection
+                MessageBox.Show("Carrier deleted successfully.");
+            }
+            else
+            {
+                MessageBox.Show("Please select a carrier to delete.");
+            }
+        }
+
+        private void RefreshCarriers(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                var carriers = DatabaseHelper.GetAllCarriers();
+                Carriers.Clear();
+                foreach (var carrier in carriers)
+                {
+                    Carriers.Add(carrier);
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Error refreshing carriers: " + ex.Message);
+            }
+        }
+
+        private void BrowseButton_Click(object sender, RoutedEventArgs e)
+        {
+            var dialog = new OpenFileDialog
+            {
+                ValidateNames = false,
+                CheckFileExists = false,
+                CheckPathExists = true,
+                FileName = "Folder Selection."
+            };
+
+            if (dialog.ShowDialog() == true)
+            {
+                BackupDirectoryTextBox.Text = Path.GetDirectoryName(dialog.FileName);
+            }
+        }
+
+        private void BackupButton_Click(object sender, RoutedEventArgs e)
+        {
+            string backupDirectory = BackupDirectoryTextBox.Text;
+            if (string.IsNullOrEmpty(backupDirectory))
+            {
+                MessageBox.Show("Please select a backup directory.");
+                return;
+            }
+
+            try
+            {
+                DatabaseHelper.BackupDatabase(backupDirectory);
+                MessageBox.Show("Backup completed successfully.");
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("An error occurred during backup: " + ex.Message);
+            }
+        }
+
+
+        /*=======================Routes====================================*/
+
+        private void AddRoute(object sender, RoutedEventArgs e)
+        {
+            // Input validation and conversion from string to respective data types
+            if (!int.TryParse(RouteCarrierIDTextBox.Text, out int carrierId) ||
+                !int.TryParse(RouteFTLATextBox.Text, out int ftla) ||
+                !int.TryParse(RouteLTLATextBox.Text, out int ltla))
+            {
+                MessageBox.Show("Invalid input format.");
+                return;
+            }
+
+            var newRoute = new Route
+            {
+                CarrierID = carrierId,
+                FTLA = ftla,
+                LTLA = ltla,
+                // Add FTLRate, LTLRate, ReefCharge fields after conversion
+            };
+
+            DatabaseHelper.AddRoute(newRoute);
+            Routes.Add(newRoute); // Assuming 'Routes' is an ObservableCollection<Route>
+            MessageBox.Show("Route added successfully.");
+        }
+
+
+        private void UpdateRoute(object sender, RoutedEventArgs e)
+        {
+            if (RoutesDataGrid.SelectedItem is Route selectedRoute)
+            {
+                // Input validation and conversion from string to respective data types
+                selectedRoute.FTLA = int.Parse(RouteFTLATextBox.Text);
+                selectedRoute.LTLA = int.Parse(RouteLTLATextBox.Text);
+
+                DatabaseHelper.UpdateRoute(selectedRoute);
+                MessageBox.Show("Route updated successfully.");
+            }
+            else
+            {
+                MessageBox.Show("Please select a route to update.");
+            }
+        }
+
+
+        private void DeleteRoute(object sender, RoutedEventArgs e)
+        {
+            if (RoutesDataGrid.SelectedItem is Route selectedRoute)
+            {
+                DatabaseHelper.DeleteRoute(selectedRoute.RouteID);
+                Routes.Remove(selectedRoute);
+                MessageBox.Show("Route deleted successfully.");
+            }
+            else
+            {
+                MessageBox.Show("Please select a route to delete.");
+            }
+        }
+
+
+        private void RefreshRoutes(object sender, RoutedEventArgs e)
+        {
+            var updatedRoutes = DatabaseHelper.GetAllRoutes();
+            Routes.Clear();
+            foreach (var route in updatedRoutes)
+            {
+                Routes.Add(route);
+            }
+        }
+
+
+        /*==========================Settings=================================*/
+
+        private void LoadSettings()
+        {
+            CurrentLogDirectory = "C:\\Logs";
+            CurrentDbmsIP = "159.89.117.198";
+            CurrentDbmsPort = 3306;
+
+            CurrentLogDirectoryText.Text = CurrentLogDirectory;
+            CurrentDbmsIpAddressText.Text = CurrentDbmsIP;
+            CurrentDbmsPortText.Text = CurrentDbmsPort.ToString();
+        }
+
+        private void SaveSettingsButton_Click(object sender, RoutedEventArgs e)
+        {
+            // Update the CurrentLogDirectory property with the value from the LogFilesDirectoryTextBox
+            CurrentLogDirectory = LogFilesDirectoryTextBox.Text;
+
+            // Update the CurrentDbmsIP property with the value from the DbmsIpAddressTextBox
+            CurrentDbmsIP = DbmsIpAddressTextBox.Text;
+
+            // Validate and update the CurrentDbmsPort property with the value from the DbmsPortTextBox
+            if (int.TryParse(DbmsPortTextBox.Text, out int dbmsPort))
+            {
+                CurrentDbmsPort = dbmsPort;
+            }
+            else
+            {
+                MessageBox.Show("Invalid DBMS port number. Please enter a valid number.");
+                return; // Exit the method if the port number is not valid
+            }
+
+            MessageBox.Show("Settings saved successfully.");
+
+
+            RefreshSettingsUI();
+        }
+
+        private void RefreshSettingsUI()
+        {
+            CurrentLogDirectoryText.Text = CurrentLogDirectory;
+            CurrentDbmsIpAddressText.Text = CurrentDbmsIP;
+            CurrentDbmsPortText.Text = CurrentDbmsPort.ToString();
+        }
+
+        private void PreviousPage_Click(object sender, RoutedEventArgs e)
+        {
+            if (currentPage > 1)
+            {
+                currentPage--;
+                UpdateLogsDataGrid();
+            }
+        }
+
+        private void NextPage_Click(object sender, RoutedEventArgs e)
+        {
+            int totalPages = (int)Math.Ceiling((double)totalItems / itemsPerPage);
+            if (currentPage < totalPages)
+            {
+                currentPage++;
+                UpdateLogsDataGrid();
+            }
+        }
+
+        private void UpdateLogsDataGrid()
+        {
+            var logs = GetPaginatedLogs(currentPage, itemsPerPage); // Fetch paginated logs
+            LogsDataGrid.ItemsSource = new ObservableCollection<LogEntry>(logs);
+
+            PageNumberText.Text = $"Page {currentPage}"; // Update page number display
+        }
+
+        private List<LogEntry> GetPaginatedLogs(int page, int itemsPerPage)
+        {
+            var allLogs = GetAllLogs();
+            totalItems = allLogs.Count;
+
+            return allLogs.Skip((page - 1) * itemsPerPage).Take(itemsPerPage).ToList();
+        }
+
+        private List<LogEntry> GetAllLogs()
+        {
+            return new List<LogEntry>();
+        }
+
+
+
+    }
+
+    public static class DatabaseHelper
+    {
+        private static string connectionString = "server=localhost;database=termproject;uid=root;pwd=Jackass12!;";
+
+
+        public static MySqlConnection GetConnection()
+        {
+            return new MySqlConnection(connectionString);
+        }
+
+        public static void AddUser(User user)
+        {
+            var query = "INSERT INTO Users (Username, FullName, Email, Role, Status, CreationDate, LastModifiedDate) VALUES (@Username, @FullName, @Email, @Role, @Status, @CreationDate, @LastModifiedDate)";
+            using (var connection = GetConnection())
+            using (var command = new MySqlCommand(query, connection))
+            {
+                command.Parameters.AddWithValue("@Username", user.Username);
+                command.Parameters.AddWithValue("@FullName", user.FullName);
+                command.Parameters.AddWithValue("@Email", user.Email);
+                command.Parameters.AddWithValue("@Role", user.Role);
+                command.Parameters.AddWithValue("@Status", user.Status);
+                command.Parameters.AddWithValue("@CreationDate", user.CreationDate);
+                command.Parameters.AddWithValue("@LastModifiedDate", user.LastModifiedDate);
+
+                connection.Open();
+                command.ExecuteNonQuery();
+            }
+        }
+
+
+        public static void DeleteUser(int userId)
+        {
+            var query = "DELETE FROM Users WHERE UserId = @UserId";
+            using (var connection = GetConnection())
+            using (var command = new MySqlCommand(query, connection))
+            {
+                command.Parameters.AddWithValue("@UserId", userId);
+                connection.Open();
+                command.ExecuteNonQuery();
+            }
+        }
+
+        public static void UpdateUser(User user)
+        {
+            var query = "UPDATE Users SET Username = @Username, FullName = @FullName, Email = @Email, Role = @Role, Status = @Status, LastModifiedDate = @LastModifiedDate WHERE UserId = @UserId";
+            using (var connection = GetConnection())
+            using (var command = new MySqlCommand(query, connection))
+            {
+                command.Parameters.AddWithValue("@UserId", user.UserId);
+                connection.Open();
+                command.ExecuteNonQuery();
+            }
+        }
+
+
+
+
+        public static void AddRateFee(RateFee rateFee)
+        {
+            var query = "INSERT INTO RateFees (Rate, Description) VALUES (@Rate, @Description)";
+            using (var connection = GetConnection())
+            using (var command = new MySqlCommand(query, connection))
+            {
+                command.Parameters.AddWithValue("@Rate", rateFee.Rate);
+                command.Parameters.AddWithValue("@Description", rateFee.Description);
+
+                connection.Open();
+                command.ExecuteNonQuery();
+            }
+        }
+
+        public static void UpdateRateFee(RateFee rateFee)
+        {
+            var query = "UPDATE RateFees SET Rate = @Rate, Description = @Description WHERE RateFeeId = @RateFeeId";
+            using (var connection = GetConnection())
+            using (var command = new MySqlCommand(query, connection))
+            {
+                command.Parameters.AddWithValue("@RateFeeId", rateFee.RateFeeId);
+                command.Parameters.AddWithValue("@Rate", rateFee.Rate);
+                command.Parameters.AddWithValue("@Description", rateFee.Description);
+
+                connection.Open();
+                command.ExecuteNonQuery();
+            }
+        }
+
+        public static void DeleteRateFee(int rateFeeId)
+        {
+            var query = "DELETE FROM RateFees WHERE RateFeeId = @RateFeeId";
+            using (var connection = GetConnection())
+            using (var command = new MySqlCommand(query, connection))
+            {
+                command.Parameters.AddWithValue("@RateFeeId", rateFeeId);
+                connection.Open();
+                command.ExecuteNonQuery();
+            }
+        }
+
+
+        // Method to add a carrier to the database
+        public static void AddCarrier(Carrier carrier)
+        {
+            using (var connection = new MySqlConnection(connectionString))
+            {
+                connection.Open();
+                var query = "INSERT INTO CarriersAdmin (cName, dCity) VALUES (@cName, @dCity)";
+                using (var command = new MySqlCommand(query, connection))
+                {
+                    command.Parameters.AddWithValue("@cName", carrier.cName);
+                    command.Parameters.AddWithValue("@dCity", carrier.dCity);
+                    command.ExecuteNonQuery();
+                }
+            }
+        }
+
+        // Method to update a carrier in the database
+        public static void UpdateCarrier(Carrier carrier)
+        {
+            using (var connection = new MySqlConnection(connectionString))
+            {
+                connection.Open();
+                var query = "UPDATE CarriersAdmin SET cName = @cName, dCity = @dCity WHERE CarrierID = @CarrierID";
+                using (var command = new MySqlCommand(query, connection))
+                {
+                    command.Parameters.AddWithValue("@cName", carrier.cName);
+                    command.Parameters.AddWithValue("@dCity", carrier.dCity);
+                    command.Parameters.AddWithValue("@CarrierID", carrier.CarrierID);
+                    command.ExecuteNonQuery();
+                }
+            }
+        }
+
+        // Method to delete a carrier from the database
+        public static void DeleteCarrier(int carrierId)
+        {
+            using (var connection = new MySqlConnection(connectionString))
+            {
+                connection.Open();
+                var query = "DELETE FROM CarriersAdmin WHERE CarrierID = @CarrierID";
+                using (var command = new MySqlCommand(query, connection))
+                {
+                    command.Parameters.AddWithValue("@CarrierID", carrierId);
+                    command.ExecuteNonQuery();
+                }
+            }
+        }
+
+        public static List<Carrier> GetAllCarriers()
+        {
+            var carriers = new List<Carrier>();
+            using (var connection = GetConnection())
+            {
+                connection.Open();
+                string query = "SELECT * FROM CarriersAdmin;";
+                using (var command = new MySqlCommand(query, connection))
+                using (var reader = command.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        var carrier = new Carrier
+                        {
+                            CarrierID = reader.GetInt32("CarrierID"),
+                            cName = reader.GetString("cName"),
+                            dCity = reader.GetString("dCity")
+                        };
+                        carriers.Add(carrier);
+                    }
+                }
+            }
+            return carriers;
+        }
+
+        public static void BackupDatabase(string backupDirectory)
+        {
+            using (var connection = new MySqlConnection(connectionString))
+            {
+                connection.Open();
+
+                // Ensure the backupDirectory ends with a backslash
+                backupDirectory = backupDirectory.EndsWith("\\") ? backupDirectory : backupDirectory + "\\";
+
+                string file = backupDirectory + "tms_backup_" + DateTime.Now.ToString("yyyyMMddHHmmss") + ".sql";
+
+                using (var command = new MySqlCommand())
+                {
+                    using (MySqlBackup mb = new MySqlBackup(command))
+                    {
+                        command.Connection = connection;
+                        mb.ExportToFile(file);
+                    }
+                }
+            }
+        }
+
+
+        /*=============================================================*/
+
+        public static void AddRoute(Route route)
+        {
+            var query = "INSERT INTO Routes (CarrierID, FTLA, LTLA, FTLRate, LTLRate, ReefCharge) VALUES (@CarrierID, @FTLA, @LTLA, @FTLRate, @LTLRate, @ReefCharge)";
+            using (var connection = GetConnection())
+            using (var command = new MySqlCommand(query, connection))
+            {
+                command.Parameters.AddWithValue("@CarrierID", route.CarrierID);
+                command.Parameters.AddWithValue("@FTLA", route.FTLA);
+                command.Parameters.AddWithValue("@LTLA", route.LTLA);
+                command.Parameters.AddWithValue("@FTLRate", route.FTLRate);
+                command.Parameters.AddWithValue("@LTLRate", route.LTLRate);
+                command.Parameters.AddWithValue("@ReefCharge", route.ReefCharge);
+
+                connection.Open();
+                command.ExecuteNonQuery();
+            }
+        }
+
+        public static void UpdateRoute(Route route)
+        {
+            var query = "UPDATE Routes SET CarrierID = @CarrierID, FTLA = @FTLA, LTLA = @LTLA, FTLRate = @FTLRate, LTLRate = @LTLRate, ReefCharge = @ReefCharge WHERE RouteID = @RouteID";
+            using (var connection = GetConnection())
+            using (var command = new MySqlCommand(query, connection))
+            {
+                command.Parameters.AddWithValue("@RouteID", route.RouteID);
+                command.Parameters.AddWithValue("@CarrierID", route.CarrierID);
+                command.Parameters.AddWithValue("@FTLA", route.FTLA);
+                command.Parameters.AddWithValue("@LTLA", route.LTLA);
+                command.Parameters.AddWithValue("@FTLRate", route.FTLRate);
+                command.Parameters.AddWithValue("@LTLRate", route.LTLRate);
+                command.Parameters.AddWithValue("@ReefCharge", route.ReefCharge);
+
+                connection.Open();
+                command.ExecuteNonQuery();
+            }
+        }
+
+        public static void DeleteRoute(int routeId)
+        {
+            var query = "DELETE FROM Routes WHERE RouteID = @RouteID";
+            using (var connection = GetConnection())
+            using (var command = new MySqlCommand(query, connection))
+            {
+                command.Parameters.AddWithValue("@RouteID", routeId);
+
+                connection.Open();
+                command.ExecuteNonQuery();
+            }
+        }
+
+        public static List<Route> GetAllRoutes()
+        {
+            var routes = new List<Route>();
+            using (var connection = GetConnection())
+            {
+                connection.Open();
+                string query = "SELECT * FROM Routes;";
+                using (var command = new MySqlCommand(query, connection))
+                using (var reader = command.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        var route = new Route
+                        {
+                            RouteID = reader.GetInt32("RouteID"),
+                            CarrierID = reader.GetInt32("CarrierID"),
+                            FTLA = reader.GetInt32("FTLA"),
+                            LTLA = reader.GetInt32("LTLA"),
+                            FTLRate = reader.GetDecimal("FTLRate"),
+                            LTLRate = reader.GetDecimal("LTLRate"),
+                            ReefCharge = reader.GetDecimal("ReefCharge")
+                        };
+                        routes.Add(route);
+                    }
+                }
+            }
+            return routes;
+        }
+
+    }
+
+    public class User
+    {
+        public int? UserId { get; set; }
+        public string? Username { get; set; }
+        public string? FullName { get; set; }
+        public string? Email { get; set; }
+        public string? Role { get; set; }
+        public string? Status { get; set; }
+        public DateTime CreationDate { get; set; }
+        public DateTime LastModifiedDate { get; set; }
+    }
+
+    public class LogEntry
+    {
+        public DateTime Timestamp { get; set; }
+        public string? Level { get; set; }
+        public string? Message { get; set; }
+    }
+
+
+
+    public class RateFee
+    {
+        public int RateFeeId { get; set; }
+        public decimal Rate { get; set; }
+        public string? Description { get; set; }
+
+    }
+
+    public class Carrier
+    {
+        public int CarrierID { get; set; }
+        public string? cName { get; set; }
+        public string? dCity { get; set; }
+
+    }
+
+    public class Route
+    {
+        public int RouteID { get; set; }
+        public int CarrierID { get; set; }
+        public int FTLA { get; set; }
+        public int LTLA { get; set; }
+        public decimal FTLRate { get; set; }
+        public decimal LTLRate { get; set; }
+        public decimal ReefCharge { get; set; }
 
     }
 }

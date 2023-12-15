@@ -4,53 +4,197 @@
         Title="Admin Dashboard" Height="600" Width="800">
 
     <Window.Resources>
-        <!-- Style for buttons -->
-        <Style x:Key="ActionButtonStyle" TargetType="Button">
-            <Setter Property="Height" Value="40"/>
+        <!-- Modern Button Style -->
+        <Style x:Key="ModernButtonStyle" TargetType="Button">
             <Setter Property="Margin" Value="10"/>
-            <Setter Property="Background" Value="#FF4C87B9"/>
-            <Setter Property="Foreground" Value="White"/>
-            <Setter Property="FontSize" Value="14"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="Padding" Value="10,5"/>
-            <Setter Property="HorizontalAlignment" Value="Left"/>
-        </Style>
-
-        <!-- Style for tab control -->
-        <Style TargetType="TabControl">
-            <Setter Property="Background" Value="White"/>
-            <Setter Property="Padding" Value="10"/>
-            <Setter Property="TabStripPlacement" Value="Left"/>
-        </Style>
-
-        <!-- Style for tab items -->
-        <Style TargetType="TabItem">
             <Setter Property="Width" Value="150"/>
-            <Setter Property="Height" Value="60"/>
+            <Setter Property="Height" Value="40"/>
             <Setter Property="FontSize" Value="14"/>
-            <Setter Property="Foreground" Value="#FF333333"/>
-            <Setter Property="Background" Value="#FFE6E6E6"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="HorizontalAlignment" Value="Center"/>
+            <Setter Property="Padding" Value="10,5"/>
+            <Setter Property="Effect">
+                <Setter.Value>
+                    <DropShadowEffect BlurRadius="10" ShadowDepth="2" Color="#66000000"/>
+                </Setter.Value>
+            </Setter>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="#FF4C87B9" CornerRadius="10" BorderThickness="0">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style TargetType="TabItem">
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Padding" Value="10"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="Background" Value="#FF555555"/>
+            <Setter Property="BorderBrush" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <!-- Setters for non-selected state -->
+            <Style.Triggers>
+                <!-- Trigger for when the TabItem is selected -->
+                <Trigger Property="IsSelected" Value="True">
+                    <Setter Property="Foreground" Value="Black"/>
+                    <Setter Property="Background" Value="White"/>
+                    <Setter Property="FontWeight" Value="Bold"/>
+                </Trigger>
+            </Style.Triggers>
         </Style>
     </Window.Resources>
 
-    <Grid>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="200"/>
-            <ColumnDefinition Width="*"/>
-        </Grid.ColumnDefinitions>
 
-        <!-- Side Navigation Panel -->
-        <StackPanel Grid.Column="0" Background="#FF333333">
-            <Button Content="User Management" Style="{StaticResource ActionButtonStyle}" Click="OnUserManagementClick"/>
-            <Button Content="System Logs" Style="{StaticResource ActionButtonStyle}" Click="OnViewLogsClick"/>
-            <Button Content="Database Backup" Style="{StaticResource ActionButtonStyle}" Click="OnDatabaseBackupClick"/>
-            <Button Content="Settings" Style="{StaticResource ActionButtonStyle}" Click="OnSettingsClick"/>
-        </StackPanel>
 
-        <!-- Main Content Area -->
-        <TabControl Grid.Column="1" Margin="0,10,10,10">
-            <!-- The content for each section will be dynamically loaded based on the button clicks -->
+
+    <Grid Background="#FF333333">
+        <TabControl>
+            <!-- User Management Tab -->
+            <TabItem Header="User Management">
+                <Grid>
+                    <StackPanel Orientation="Vertical">
+                        <StackPanel Orientation="Horizontal">
+                            <Button x:Name="AddUserButton" Content="Add User" Margin="5" Click="AddUser"/>
+                            <Button x:Name="DeleteUserButton" Content="Delete User" Margin="5" Click="DeleteUser"/>
+                        </StackPanel>
+                        <StackPanel Orientation="Vertical" Margin="5">
+                            <TextBox x:Name="UsernameTextBox" ToolTip="Username" Margin="2"/>
+                            <TextBox x:Name="FullNameTextBox" ToolTip="Full Name" Margin="2"/>
+                            <TextBox x:Name="EmailTextBox" ToolTip="Email" Margin="2"/>
+                            <TextBox x:Name="RoleTextBox" ToolTip="Role" Margin="2"/>
+                            <TextBox x:Name="StatusTextBox" ToolTip="Status" Margin="2"/>
+                            <Button x:Name="ConfirmAddUserButton" Content="Confirm Add User" Margin="5" Click="ConfirmAddUserButton_Click"/>
+                        </StackPanel>
+                        <DataGrid x:Name="UsersDataGrid" Margin="0,10,0,0" AutoGenerateColumns="True" CanUserAddRows="False" ItemsSource="{Binding Users}"/>
+                    </StackPanel>
+                </Grid>
+            </TabItem>
+
+            <TabItem Header="System Logs">
+                <Grid>
+                    <StackPanel Orientation="Vertical">
+                        <Button Content="Refresh Logs" Margin="5" Click="RefreshLogs"/>
+                        <DataGrid x:Name="LogsDataGrid" Margin="0,10,0,0" AutoGenerateColumns="True"/>
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                            <Button Content="Previous" Click="PreviousPage_Click" Margin="5"/>
+                            <TextBlock x:Name="PageNumberText" Text="Page 1" VerticalAlignment="Center" Margin="5"/>
+                            <Button Content="Next" Click="NextPage_Click" Margin="5"/>
+                        </StackPanel>
+                    </StackPanel>
+                </Grid>
+            </TabItem>
+
+
+            <TabItem Header="Rate/Fee Tables">
+                <Grid>
+                    <StackPanel Orientation="Vertical">
+                        <StackPanel Orientation="Horizontal">
+                            <Button Content="Add Rate/Fee" Margin="5" Click="AddRateFee"/>
+                            <Button Content="Update Rate/Fee" Margin="5" Click="UpdateRateFee"/>
+                            <Button Content="Delete Rate/Fee" Margin="5" Click="DeleteRateFee"/>
+                            <Button Content="Submit Changes" Margin="5" Click="SubmitChanges"/>
+                            <Button Content="Refresh Rate/Fees" Margin="5" Click="RefreshRateFees"/>
+                        </StackPanel>
+                        <!-- Add Rate and Description input fields -->
+                        <StackPanel Orientation="Horizontal" Margin="5">
+                            <Label Content="Rate:" VerticalAlignment="Center"/>
+                            <TextBox x:Name="RateTextBox" Width="100" Margin="5"/>
+                            <Label Content="Description:" VerticalAlignment="Center"/>
+                            <TextBox x:Name="DescriptionTextBox" Width="200" Margin="5"/>
+                        </StackPanel>
+                        <DataGrid x:Name="RateFeeDataGrid" Margin="0,10,0,0" AutoGenerateColumns="True" ItemsSource="{Binding RateFees}"/>
+                    </StackPanel>
+                </Grid>
+            </TabItem>
+
+            <!-- Carriers Tab -->
+            <TabItem Header="Carriers">
+                <Grid>
+                    <StackPanel Orientation="Vertical">
+                        <StackPanel Orientation="Horizontal" Margin="10">
+                            <Label Content="Carrier Name:" VerticalAlignment="Center"/>
+                            <TextBox x:Name="CarrierNameTextBox" Width="120" Margin="5"/>
+                            <Label Content="Departure City:" VerticalAlignment="Center"/>
+                            <TextBox x:Name="CarrierCityTextBox" Width="120" Margin="5"/>
+                            <Button Content="Add Carrier" Margin="5" Click="AddCarrier"/>
+                            <Button Content="Update Carrier" Margin="5" Click="UpdateCarrier"/>
+                            <Button Content="Delete Carrier" Margin="5" Click="DeleteCarrier"/>
+                            <Button Content="Submit Carrier Changes" Margin="5" Click="SubmitCarrierChanges"/>
+                            <Button Content="Refresh Carriers" Margin="5" Click="RefreshCarriers"/>
+                        </StackPanel>
+                        <DataGrid x:Name="CarriersDataGrid" Margin="10" AutoGenerateColumns="True" ItemsSource="{Binding Carriers}" CanUserAddRows="False"/>
+                    </StackPanel>
+                </Grid>
+            </TabItem>
+
+            <TabItem Header="Database Backup">
+                <Grid>
+                    <StackPanel Orientation="Vertical" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="10">
+                        <Label Content="Backup Directory:"/>
+                        <TextBox x:Name="BackupDirectoryTextBox" Width="300" Margin="0,5,0,5"/>
+                        <Button x:Name="BrowseButton" Content="Browse..." Click="BrowseButton_Click" Margin="0,0,0,5"/>
+                        <Button x:Name="BackupButton" Content="Start Backup" Click="BackupButton_Click"/>
+                    </StackPanel>
+                </Grid>
+            </TabItem>
+
+            <!-- Routes Tab -->
+            <TabItem Header="Routes">
+                <Grid>
+                    <StackPanel Orientation="Vertical">
+                        <StackPanel Orientation="Horizontal" Margin="10">
+                            <Label Content="Carrier ID:" VerticalAlignment="Center"/>
+                            <TextBox x:Name="RouteCarrierIDTextBox" Width="50" Margin="5"/>
+                            <Label Content="FTLA:" VerticalAlignment="Center"/>
+                            <TextBox x:Name="RouteFTLATextBox" Width="50" Margin="5"/>
+                            <Label Content="LTLA:" VerticalAlignment="Center"/>
+                            <TextBox x:Name="RouteLTLATextBox" Width="50" Margin="5"/>
+                            <Button Content="Add Route" Margin="5" Click="AddRoute"/>
+                            <Button Content="Update Route" Margin="5" Click="UpdateRoute"/>
+                            <Button Content="Delete Route" Margin="5" Click="DeleteRoute"/>
+                            <Button Content="Submit Route Changes" Margin="5" Click="SubmitRouteChanges"/>
+                            <Button Content="Refresh Routes" Margin="5" Click="RefreshRoutes"/>
+                        </StackPanel>
+                        <DataGrid x:Name="RoutesDataGrid" Margin="10" AutoGenerateColumns="True" ItemsSource="{Binding Routes}" CanUserAddRows="False"/>
+                    </StackPanel>
+                </Grid>
+            </TabItem>
+
+            <TabItem Header="Settings">
+                <Grid>
+                    <StackPanel Orientation="Vertical" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="10">
+                        <!-- Configuration Inputs -->
+                        <Label Content="Log Directory:"/>
+                        <TextBox x:Name="LogFilesDirectoryTextBox" Width="300" Margin="0,5,0,5"/>
+                        <Label Content="DBMS IP Address:"/>
+                        <TextBox x:Name="DbmsIpAddressTextBox" Width="300" Margin="0,5,0,5"/>
+                        <Label Content="DBMS Port:"/>
+                        <TextBox x:Name="DbmsPortTextBox" Width="300" Margin="0,5,0,5"/>
+                        <Button x:Name="SaveSettingsButton" Content="Save Settings" Click="SaveSettingsButton_Click" Margin="0,5,0,10"/>
+
+                        <!-- Display of Current Settings -->
+                        <TextBlock Text="Current Settings:" FontWeight="Bold" Margin="0,10,0,5"/>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="Log Directory: " FontWeight="SemiBold"/>
+                            <TextBlock x:Name="CurrentLogDirectoryText" Text="{Binding CurrentLogDirectory}"/>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="DBMS IP Address: " FontWeight="SemiBold"/>
+                            <TextBlock x:Name="CurrentDbmsIpAddressText" Text="{Binding CurrentDbmsIP}"/>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="DBMS Port: " FontWeight="SemiBold"/>
+                            <TextBlock x:Name="CurrentDbmsPortText" Text="{Binding CurrentDbmsPort}"/>
+                        </StackPanel>
+                    </StackPanel>
+                </Grid>
+            </TabItem>
+
         </TabControl>
+
     </Grid>
 </Window>
